@@ -21,6 +21,7 @@ from pyemvue.enums import Scale
 import requests
 import voluptuous as vol
 
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant, State
@@ -48,6 +49,8 @@ from .const import (
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = ["sensor", "switch"]
+
+TO_REDACT = {CONF_PASSWORD}
 
 CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: CONFIG_FLOW_SCHEMA},
@@ -100,7 +103,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     DEVICE_INFORMATION = {}
 
     entry_data = entry.data
-    _LOGGER.debug("Setting up Emporia Vue with entry data: %s", entry_data)
+    _LOGGER.debug(
+        "Setting up Emporia Vue with entry data: %s",
+        async_redact_data(entry_data, TO_REDACT),
+    )
     email: str = entry_data[CONF_EMAIL]
     password: str = entry_data[CONF_PASSWORD]
     if SOLAR_INVERT in entry_data:

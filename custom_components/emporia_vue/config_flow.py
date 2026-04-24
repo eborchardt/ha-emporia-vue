@@ -9,6 +9,7 @@ from pyemvue import PyEmVue
 import voluptuous as vol
 
 from homeassistant import config_entries, exceptions
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 import homeassistant.helpers.config_validation as cv
 
@@ -24,6 +25,8 @@ from .const import (
 )
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
+
+TO_REDACT = {CONF_PASSWORD}
 
 
 class VueHub:
@@ -116,8 +119,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the reconfiguration step."""
         current_config = self._get_reconfigure_entry()
         if user_input is not None:
-            _LOGGER.debug("User input on reconfigure was the following: %s", user_input)
-            _LOGGER.debug("Current config is: %s", current_config.data)
+            _LOGGER.debug(
+                "User input on reconfigure was the following: %s",
+                async_redact_data(user_input, TO_REDACT),
+            )
+            _LOGGER.debug(
+                "Current config is: %s",
+                async_redact_data(current_config.data, TO_REDACT),
+            )
             info = current_config.data
             # if gid is not in current config, reauth and get gid again
             if (
